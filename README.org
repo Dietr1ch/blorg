@@ -1,0 +1,10 @@
+#+title: blorg
+
+A scrappy static site generator using ~org-mode~.
+
+
+* Features
+- Supports [[https://htmx.org/][HTMX]] for fast and targeted content swapping.
+- Minifies HTML and CSS.
+- Sets up an environment with [[https://github.com/static-web-server/static-web-server/][~static-web-server~]] where it's fast to test changes.
+

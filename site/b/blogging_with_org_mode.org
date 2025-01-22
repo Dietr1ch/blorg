@@ -1,0 +1,65 @@
+:PROPERTIES:
+:created_time: 2025-01-22T16:00:00-03:00
+:modified_time: 2025-01-22T16:00:00-03:00
+:base_depth: 2
+:END:
+#+title: Blogging with ~org-mode~
+
+* Why?
+1. I use emacs, BTW
+   - but Emacs is not ideal as a build dependency.
+2. Reduced friction, my [[https://www.orgroam.com/][org-roam]] DB already uses ~org-mode~
+3. Expressive
+   - Styling, but even Markdown can do this
+   - Document is a tree
+   - Properties on any heading
+   - Interactive code blocks
+4. Rust has nice libraries to help
+   - And you get a blazingly fast site generator.
+5. Easy to customise tools.
+6. Simple to serve site.
+
+* Why not?
+1. Pre-alpha quality site generator.
+   - Expect breakages and not being able to express what you want to generate.
+   - At least ~#+begin_export html~ … ~#+end_export~ blocks allow raw HTML output.
+3. Dependency on pre-1.0 org-mode parser.
+   - Some features are not supported.
+4. Hardcodes htmx and some site structure.
+5. Static sites can't handle logged-in users, but rarely need that.
+
+* Showcase
+** Numbered lists
+1. First
+2. Second
+** Itemised lists
+- One thing
+- Another thing
+** Blocks
+*** Code
+#+begin_src python :session my_session :results output replace
+  print("But, why?")
+#+end_src
+
+#+RESULTS:
+: But, why?
+
+*** Quotes
+#+begin_quote
+- Why should only ~<a>~ & ~<form>~ be able to make HTTP requests?
+- Why should only ~click~ & ~submit~ events trigger them?
+- Why should only ~GET~ & ~POST~ methods be available?
+- Why should you only be able to replace the entire screen?
+
+By removing these constraints, htmx completes HTML as a hypertext
+#+end_quote
+*** Centered
+#+begin_center
+  Maybe a quote would look nice here?
+#+end_center
+** Recursive headings
+*** Recursive headings
+**** Recursive headings
+**** Recursive headings
+*** Recursive headings
+**** Recursive headings

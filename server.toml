@@ -1,0 +1,17 @@
+# https://static-web-server.net/configuration/config-file/
+
+[general]
+port = 3333
+
+log-level = "info"
+
+root = "out/"
+page404 = "./.github/404.html"  # out/.github/404.html
+page50x = "./.github/50x.html"  # out/.github/50x.html
+
+
+[advanced]
+
+[[advanced.headers]]
+source = "**/*.{html,js,css,png,ico,json,xml}"
+headers = {Cache-Control = "no-cache, no-store, must-revalidate", Pragma = "no-cache", Expires = "0"}

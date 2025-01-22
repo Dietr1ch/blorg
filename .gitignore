@@ -1,0 +1,34 @@
+# OS
+## Unix
+.*
+
+
+# Spelling
+!.spelling/
+
+
+# Nix
+!.envrc
+
+
+# Git
+!.ignore
+!.gitignore
+
+
+# Rust
+/target
+
+
+# Project
+## TODOs
+TODOs.org
+# Data
+## Inputs
+# /site
+## Outputs
+/out
+## Test data
+/test
+## Logs
+*.log
