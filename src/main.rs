@@ -14,9 +14,21 @@ use forg::page;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Args {
+    // Input
     #[arg(default_value = "site")]
     pub dir: PathBuf,
 
+    // Configuration
+    #[arg(long)]
+    pub root_address: String,
+    #[arg(long)]
+    pub title: String,
+    #[arg(long)]
+    pub description: String,
+    #[arg(long, default_value = "en-GB")]
+    pub language: String,
+
+    // Output
     #[arg(long, default_value = "out")]
     pub outdir: PathBuf,
 
@@ -98,6 +110,11 @@ fn main() -> io::Result<()> {
     let args = Args::parse();
     setup_logger().map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to setup logging"))?;
 
+    let rss_config = page::RssConfig::new(args.root_address.clone());
+
+    let now = chrono::Local::now();
+
+    let mut rss_entries: Vec<rss::Item> = vec![];
     for path in WalkDir::new(&args.dir)
         .same_file_system(true)
         .min_depth(1)
@@ -125,6 +142,10 @@ fn main() -> io::Result<()> {
                     fs::read_to_string(&path).expect("Should have been able to read the file");
 
                 let doc = Org::parse(&contents);
+
+                if let Some(rss_entry) = page::to_rss_item(&rss_config, &doc, rel_path) {
+                    rss_entries.push(rss_entry);
+                }
                 let html = page::to_html(doc, rel_path)?;
 
                 write_html(&out_path, &html)?;
@@ -150,6 +171,21 @@ fn main() -> io::Result<()> {
             _ => {}
         }
     }
+
+    let channel: rss::Channel = rss::ChannelBuilder::default()
+        .title(args.title)
+        .link(args.root_address)
+        .description(args.description)
+        .last_build_date(Some(now.to_rfc2822()))
+        .language(args.language)
+        .items(rss_entries)
+        .build();
+    use rss::validation::Validate;
+    channel.validate().unwrap();
+    let mut rss_out_path: PathBuf = args.outdir.clone();
+    rss_out_path.push("feed.rss");
+    log::info!("Will write RSS feed to '{}'", rss_out_path.display());
+    fs::write(rss_out_path, channel.to_string())?;
 
     Ok(())
 }

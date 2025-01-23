@@ -1,6 +1,7 @@
 :PROPERTIES:
 :modified_time: 2024-03-06T16:00:00+00:00
 :base_depth: 1
+:skip_feed: True
 :generates: [[../out/about/_.html]]
 :END:
 

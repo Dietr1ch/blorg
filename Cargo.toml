@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.39"
 clap = { version = "4.5.26", features = ["derive"] }
 css-minify = "0.5.2"
 fern = "0.7.1"
@@ -12,5 +13,6 @@ indoc = "2.0.5"
 log = "0.4.25"
 minify-html = "0.15.0"
 orgize = "0.10.0-alpha.10"
+rss = { version = "2.0.11", features = ["validation"] }
 slugify = "0.1.0"
 walkdir = "2.5.0"

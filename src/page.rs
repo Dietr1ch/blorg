@@ -10,6 +10,41 @@ use slugify::slugify;
 
 const HEADING_HTML_ELEMENT: [&str; 6] = ["h1", "h2", "h3", "h4", "h5", "h6"];
 
+pub struct RssConfig {
+    root_address: String,
+}
+
+impl RssConfig {
+    pub fn new(root_address: String) -> Self {
+        Self { root_address }
+    }
+}
+
+pub fn to_rss_item(config: &RssConfig, doc: &Org, file_rel_path: &Path) -> Option<rss::Item> {
+    let mut item = rss::ItemBuilder::default();
+
+    if let Some(properties) = doc.document().properties() {
+        if properties.get("skip_feed").is_some() {
+            return None;
+        }
+
+        if let Some(title) = properties.get("title") {
+            item.title(title.to_string());
+        }
+        if let Some(description) = properties.get("description") {
+            item.description(description.to_string());
+        }
+        if let Some(publication_date) = properties.get("publication_date") {
+            item.pub_date(publication_date.to_string());
+        }
+        let mut path = file_rel_path.to_path_buf();
+        path.set_extension("");
+        item.link(Some(format!("{}/{}", config.root_address, path.display())));
+    }
+
+    Some(item.build())
+}
+
 pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error> {
     let mut html_export = HtmlExport::default();
 
