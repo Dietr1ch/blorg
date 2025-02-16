@@ -2,6 +2,7 @@ use std::cmp::{max, min};
 use std::path::Path;
 use std::path::PathBuf;
 
+use indoc::indoc;
 use orgize::Org;
 use orgize::export::HtmlEscape;
 use orgize::export::HtmlExport;
@@ -88,21 +89,25 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
 
                 html_export.push_str(if is_local_link {
                     format!(
-                        r###"<a hx-get="{0}/_.html"
-                                preload
-                                hx-target="#content"
-                                hx-push-url="{0}/"
-                                hx-history-target="{0}/"
-                                aria-controls="content"
-                                href="{0}"
-                                class="">"###,
+                        indoc! {r###"
+                                <a hx-get="{0}/_.html"
+                                  preload
+                                  hx-target="#content"
+                                  hx-push-url="{0}/"
+                                  hx-history-target="{0}/"
+                                  aria-controls="content"
+                                  href="{0}"
+                                  class="">
+                        "###},
                         target
                     )
                 } else {
                     format!(
-                        r#"<a href="{}"
-                              preload
-                              target="_blank">"#,
+                        indoc! {r###"
+                                <a href="{}"
+                                  preload
+                                  target="_blank">
+                        "###},
                         target
                     )
                 });
@@ -116,18 +121,24 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
             Event::Enter(Container::SourceBlock(block)) => {
                 if let Some(language) = block.language() {
                     html_export.push_str(format!(
-                        r#"<pre><code class="lang-{}">"#,
+                        r#"<pre><code class="language-{}">"#,
                         HtmlEscape(&language)
                     ));
                 } else {
                     html_export.push_str("<pre><code>");
                 }
-
-                // if let Some(results) = block.results() {
-                //     println!("RESULTS: {:?}", results);
-                // }
             }
-            Event::Leave(Container::SourceBlock(_)) => html_export.push_str("</code></pre>"),
+            Event::Leave(Container::SourceBlock(_block)) => {
+                html_export.push_str("</code></pre>");
+            }
+
+            Event::Enter(Container::FixedWidth(fixed)) => {
+                html_export.push_str(format!(
+                    r#"<pre><samp class="org_result">{}</samp></pre>"#,
+                    HtmlEscape(fixed.value()),
+                ));
+                ctx.skip();
+            }
 
             Event::Enter(Container::ExportBlock(e)) => {
                 // Don't enter this block
@@ -136,12 +147,6 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                 // TODO: Check that the export type is "html"
                 html_export.push_str(e.value());
             }
-            // Event::Enter(Container::Results(results)) => {
-            //     ctx.skip();
-            //     html_export.push_str(format!("<pre>"));
-            //     html_export.push_str(e.value());
-            //     html_export.push_str(format!("</pre>"));
-            // }
             Event::Enter(Container::PropertyDrawer(properties)) => {
                 ctx.skip();
 
@@ -185,6 +190,12 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                     html_export.push_str(format!("<{tag}>"));
                     //     <a href="SLUG($TITLE)">
                     html_export.push_str(format!("<a href=\"#{0}\">", slug));
+                    if headline.is_todo() {
+                        html_export.push_str("<span class=\"org_todo\">TODO</span> ");
+                    }
+                    if headline.is_done() {
+                        html_export.push_str("<span class=\"org_todo_done\">DONE</span> ");
+                    }
                     //     $HEADLINE.title
                     for elem in headline.title() {
                         html_export.element(elem, ctx);

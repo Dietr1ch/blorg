@@ -8,8 +8,9 @@
 	--bg-color: rgba(21, 21, 21, 0.7);
 	--bg-color-alt: rgba(21, 21, 21, 0.4);
 	--shadow-color: rgba(0, 0, 0, 0.2);
-}
 
+	--link-color: hsl(120 12.3% 75%);
+}
 @media print {
 	:root {
 		--fg-color: #000;
@@ -24,7 +25,7 @@
 	}
 
 	.dont-print {
-		display: none;
+		display: none !important;
 	}
 
 	section {
@@ -36,41 +37,42 @@
 	}
 }
 
-html {
-	scrollbar-gutter: stable;
-	scrollbar-width: thin;
-}
-
-html,
-body {
-	width: 100%;
-	height: 100%;
-	margin: 0;
-}
-
-/* Body background */
-body {
-	background-color: var(--bg-void) !important;
-	background-position-x: center;
-	background-position-y: top;
-	background-attachment: fixed;
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-image: var(--bg-img);
-}
-
 /* Font */
 @font-face {
-	font-family: "Open Sans";
-	src: local("Open Sans Regular"), local("OpenSans-Regular"), url(open-sans-regular.woff2) format("woff2");
-	font-style: normal;
-	font-weight: normal;
+	font-family: "SansText";
+	src:
+	    local("Open Sans Regular"),
+	    local("OpenSans-Regular"),
+	    url(open-sans-regular.woff2) format("woff2");
+	font-display: swap;
+}
+@font-face {
+	font-family: "SourceCode";
+	src:
+	    local("Monospace"),
+	    url(FiraCode-Regular.woff2) format("woff2");
 	font-display: swap;
 }
 
-* {
-	font-family: "Open Sans", "sans-serif" !important;
-	color: var(--fg-color) !important;
+/* Canvas */
+html,body {
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	font-family: "SansText", "sans-serif";
+	font-style: normal;
+	font-weight: normal;
+	color: var(--fg-color);
+	color-scheme: dark;
+}
+html {
+	background: var(--bg-void) var(--bg-img) no-repeat;
+	background-position: center top;
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: cover;
 }
 
 
@@ -80,10 +82,47 @@ h1 {
 	font-size: 3.3em;
 	font-weight: bolder;
 }
+p, button, a {
+	color: var(--fg-color);
+}
+a {
+	color: var(--link-color);
+}
+/* a normal, unvisited link */
+/* a:link { */
+/* 	color: var(--link-color); */
+/* } */
+/* a link the user has visited */
+a:visited {
+	/* color: var(--link-color-visited); */
+	filter: brightness(80%);
+}
+/* a link when the user mouses over it */
+a:hover {
+	/* color: var(--link-color-hover); */
+	filter: brightness(115%);
+}
+/* a link the moment it is clicked */
+a:active {
+	/* color: var(--link-color-click); */
+	filter: brightness(150%);
+}
+pre {
+	margin: 1em;
+	padding: 0.5em;
+	border-radius: 0.5em;
+	background: var(--bg-color-alt);
+}
+code {
+	font-family: "SourceCode", "Monospace";
+}
+samp {
+	font-family: "SourceCode", "Monospace";
+}
 
 button {
 	min-width: 8em;
-	padding: .5em 1em;
+	padding: 0.5em 1em;
 	text-decoration: none;
 	font-size: 100%;
 	background-color: transparent;
@@ -91,7 +130,6 @@ button {
 	color: var(--fg-color);
 	/* border-radius: 0.5em; */
 }
-
 button:hover,
 button:focus {
 	background-color: var(--bg-color-alt);
@@ -106,20 +144,19 @@ button:focus {
 	flex-direction: column;
 	align-items: center;
 }
-
-.column>div {
+.column > div {
 	padding-left: 1em;
 	padding-right: 1em;
 	width: 90%;
 }
-
-.column>div>* {
+.column > div > * {
 	margin: 0 1em;
 }
 
 .surface {
 	background: var(--bg-color);
 	box-shadow: 0 1em 3em 0 var(--shadow-color), 0 1em 3em 0 var(--shadow-color);
+	backdrop-filter: blur(10px);
 }
 
 .round {
@@ -185,4 +222,11 @@ h4,
 h5,
 h6 {
 	font-weight: bold;
+}
+
+span.org_todo {
+	color: salmon;
+}
+span.org_todo_done {
+	color: lightgreen;
 }

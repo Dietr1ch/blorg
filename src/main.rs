@@ -28,17 +28,25 @@ pub struct Args {
     #[arg(long, default_value = "en-GB")]
     pub language: String,
 
+    #[arg(long, default_value = "Info")]
+    pub log_level: log::LevelFilter,
+
     // Output
     #[arg(long, default_value = "out")]
     pub outdir: PathBuf,
 
     #[arg(long, default_value = "false")]
     pub copy_older_files: bool,
+
+    #[arg(long, default_value = "false")]
+    pub minify_html: bool,
+    #[arg(long, default_value = "false")]
+    pub minifier_copy_on_failure: bool,
 }
 
 use std::time::SystemTime;
 
-fn setup_logger() -> Result<(), fern::InitError> {
+fn setup_logger(args: &Args) -> Result<(), fern::InitError> {
     fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
@@ -49,7 +57,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        .level(log::LevelFilter::Info)
+        .level(args.log_level)
         .chain(io::stdout())
         .chain(fern::log_file("output.log")?)
         .apply()?;
@@ -64,10 +72,10 @@ fn try_mkdir(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn write_stub_file(path: &Path) -> io::Result<()> {
+fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
     log::info!("Generating stub for '{}'...", path.display());
 
-    write_html(path, indoc! {r###"
+    write_html(args, path, indoc! {r###"
         <!DOCTYPE html>
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
         	<head>
@@ -86,29 +94,44 @@ fn write_stub_file(path: &Path) -> io::Result<()> {
     "###})
 }
 
-fn write_html(path: &Path, contents: &str) -> io::Result<()> {
-    use minify_html::{Cfg, minify};
+fn write_html(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
+    if args.minify_html {
+        use minify_html::{Cfg, minify};
+        let mut cfg = Cfg::new();
+        cfg.keep_comments = false;
 
-    let mut cfg = Cfg::new();
-    cfg.keep_comments = false;
-
-    log::info!("Minifying {}", path.display());
-    fs::write(path, minify(contents.as_bytes(), &cfg))
+        log::info!("Minifying {}", path.display());
+        fs::write(path, minify(contents.as_bytes(), &cfg))
+    } else {
+        fs::write(path, contents.as_bytes())
+    }
 }
 
-fn write_css(path: &Path, contents: &str) -> io::Result<()> {
+fn write_css(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     use css_minify::optimizations::{Level, Minifier};
 
     log::info!("Minifying {}", path.display());
-    fs::write(
-        path,
-        Minifier::default().minify(contents, Level::Three).unwrap(),
-    )
+    match Minifier::default().minify(contents, Level::Three) {
+        Ok(minified_css) => fs::write(path, minified_css),
+        Err(e) => {
+            log::error!("Failed to minify CSS; {}", e);
+            if args.minifier_copy_on_failure {
+                log::info!("Copying '{}' instead.", path.display());
+                fs::write(path, contents)
+            } else {
+                Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("Couldn't minify {}", path.display()),
+                ))
+            }
+        }
+    }
 }
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
-    setup_logger().map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to setup logging"))?;
+    setup_logger(&args)
+        .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to setup logging"))?;
 
     let rss_config = page::RssConfig::new(args.root_address.clone());
 
@@ -135,7 +158,7 @@ fn main() -> io::Result<()> {
                 log::info!("Generating '{}'...", out_path.display());
                 out_path.set_extension("");
                 try_mkdir(&out_path)?;
-                write_stub_file(&out_path.join("index.html"))?;
+                write_stub_file(&args, &out_path.join("index.html"))?;
                 out_path.push("_.html");
 
                 let contents =
@@ -148,10 +171,10 @@ fn main() -> io::Result<()> {
                 }
                 let html = page::to_html(doc, rel_path)?;
 
-                write_html(&out_path, &html)?;
+                write_html(&args, &out_path, &html)?;
             }
-            Some("html") => write_html(&out_path, &fs::read_to_string(path)?)?,
-            Some("css") => write_css(&out_path, &fs::read_to_string(path)?)?,
+            Some("html") => write_html(&args, &out_path, &fs::read_to_string(path)?)?,
+            Some("css") => write_css(&args, &out_path, &fs::read_to_string(path)?)?,
             Some(_ext) => {
                 if !args.copy_older_files && fs::exists(&out_path)? {
                     // Get metadata
