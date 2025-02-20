@@ -23,15 +23,12 @@
 		--bg-color-alt: #ddd;
 		--shadow-color: rgba(0, 0, 0, 0.0);
 	}
-
 	.dont-print {
 		display: none !important;
 	}
-
 	section {
 		page-break-inside: avoid;
 	}
-
 	p {
 		font-size: small;
 	}
@@ -82,9 +79,6 @@ h1 {
 	font-size: 3.3em;
 	font-weight: bolder;
 }
-p, button, a {
-	color: var(--fg-color);
-}
 a {
 	color: var(--link-color);
 }
@@ -127,7 +121,6 @@ button {
 	font-size: 100%;
 	background-color: transparent;
 	border: 1px solid var(--fg-color);
-	color: var(--fg-color);
 	/* border-radius: 0.5em; */
 }
 button:hover,
@@ -158,7 +151,6 @@ button:focus {
 	box-shadow: 0 1em 3em 0 var(--shadow-color), 0 1em 3em 0 var(--shadow-color);
 	backdrop-filter: blur(10px);
 }
-
 .round {
 	border-radius: 0.5em;
 }
@@ -181,26 +173,30 @@ footer {
 	align-items: center;
 	justify-content: center;
 }
-
 @media screen and (max-width: 30em) {
-
 	navbar,
 	footer {
 		flex-direction: column;
 	}
 }
-
+@media screen and (max-width: 15em) {
+	.column {
+		display: none;
+	}
+	body {
+		display: flex;
+		align-items: center;
+	}
+}
 aside {
 	text-align: center;
 }
-
 footer {
 	padding-top: 1em;
 	padding-bottom: 3em;
 
 	text-align: center;
 }
-
 .icon {
 	fill: var(--fg-color);
 	padding: 0.5em;
@@ -210,7 +206,6 @@ p {
 	text-align: justify;
 	word-break: auto-phrase;
 }
-
 a {
 	background-color: transparent;
 }
