@@ -1,10 +1,9 @@
 build:
+    mkdir -p $OUTDIR
     rm -f output.log
+
     cargo run \
       -- \
-      --title "FIXME" \
-      --description "FIXME" \
-      --root-address "https://please.fix.me"
       --log-level 'Debug' \
       --minifier-copy-on-failure \
 

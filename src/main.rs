@@ -15,15 +15,15 @@ use forg::page;
 #[command(version, about, long_about = None)]
 pub struct Args {
     // Input
-    #[arg(default_value = "site")]
+    #[arg(default_value = "site", env = "BLOG_DIR")]
     pub dir: PathBuf,
 
     // Configuration
-    #[arg(long)]
+    #[arg(long, env = "BLOG_ROOT_ADDRESS")]
     pub root_address: String,
-    #[arg(long)]
+    #[arg(long, env = "BLOG_TITLE")]
     pub title: String,
-    #[arg(long)]
+    #[arg(long, env = "BLOG_DESCRIPTION")]
     pub description: String,
     #[arg(long, default_value = "en-GB")]
     pub language: String,
@@ -32,7 +32,7 @@ pub struct Args {
     pub log_level: log::LevelFilter,
 
     // Output
-    #[arg(long, default_value = "out")]
+    #[arg(long, default_value = "out", env = "OUTDIR")]
     pub outdir: PathBuf,
 
     #[arg(long, default_value = "false")]
