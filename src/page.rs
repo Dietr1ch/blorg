@@ -1,4 +1,3 @@
-use std::cmp::{max, min};
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -60,6 +59,29 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
 
     let mut handler = from_fn_with_ctx(|event, ctx| {
         match event {
+            Event::Enter(Container::Document(_doc)) => {
+                html_export.push_str("<main>");
+
+                // Add title if present
+                if let Some(title) = doc.title() {
+                    // Parse title as Org document
+                    let title = Org::parse(title);
+                    let title = title.first_node::<orgize::ast::Paragraph>().unwrap();
+
+                    use orgize::rowan::ast::AstNode;
+                    let mut html = HtmlExport::default();
+                    html.render(title.syntax());
+                    let title_html = html.finish();
+                    // Drop surrounding <p>...</p> tags
+                    let title_html = &title_html[3..title_html.len() - 3 - 1];
+
+                    let depth = base_depth;
+                    let tag = HEADING_HTML_ELEMENT[(depth - 1).clamp(0, 5) as usize];
+
+                    html_export.push_str(format!(r#"<{tag}>{title_html}</{tag}>"#));
+                }
+            }
+
             Event::Enter(Container::Link(link)) => {
                 let path = link.path();
                 let mut path: &str = path.trim_start_matches("file:");
@@ -179,7 +201,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
 
             Event::Enter(Container::Headline(headline)) => {
                 let depth = (headline.level() as i8) + base_depth;
-                let tag = HEADING_HTML_ELEMENT[max(0, min(depth, 6) - 1) as usize];
+                let tag = HEADING_HTML_ELEMENT[(depth - 1).clamp(0, 5) as usize];
                 let title = headline.title().map(|e| e.to_string()).collect::<String>();
                 let slug = slugify!(&title);
 
