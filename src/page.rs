@@ -101,7 +101,6 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                     }
                 }
 
-                // TODO Use _target blank on remote links
                 let target = HtmlEscape(&path);
 
                 if link.is_image() {
