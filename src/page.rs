@@ -158,6 +158,12 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                                 id,
                             ));
                         }
+                        ("published_time", published_time) => {
+                            html_export.push_str(format!(
+                                "<meta property=\"article:published_time\" content=\"{}\">",
+                                published_time,
+                            ));
+                        }
                         ("modified_time", modified_time) => {
                             html_export.push_str(format!(
                                 "<meta property=\"article:modified_time\" content=\"{}\">",
