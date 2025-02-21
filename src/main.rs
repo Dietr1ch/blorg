@@ -133,6 +133,15 @@ fn write_css(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     }
 }
 
+/// Files to avoid processing
+static SKIP: &[&str] = &[
+    ".dir-locals.el",
+    ".env",
+    ".gitignore",
+    ".projectile",
+    "Justfile",
+];
+
 fn main() -> io::Result<()> {
     let args = Args::parse();
     setup_logger(&args)
@@ -156,6 +165,13 @@ fn main() -> io::Result<()> {
         if path.is_dir() {
             try_mkdir(&out_path)?;
             continue;
+        }
+
+        for s in SKIP {
+            if rel_path.file_name().unwrap() == *s {
+                log::info!("skipping {}", s);
+                continue;
+            }
         }
 
         match path.extension().and_then(|s| s.to_str()) {
