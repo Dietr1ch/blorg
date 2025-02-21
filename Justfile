@@ -5,6 +5,7 @@ build:
     cargo run \
       -- \
       --log-level 'Debug' \
+      --minify-html \
       --minifier-copy-on-failure \
 
 serve:

@@ -72,9 +72,8 @@ fn try_mkdir(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/// Writes an index.html file redirecting to the root SPA with the path as an argument
 fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
-    log::info!("Generating stub for '{}'...", path.display());
-
     write_html(args, path, indoc! {r###"
         <!DOCTYPE html>
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -94,11 +93,16 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
     "###})
 }
 
+/// Writes an HTML file. May minify the file.
 fn write_html(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     if args.minify_html {
         use minify_html::{Cfg, minify};
         let mut cfg = Cfg::new();
+        cfg.minify_css = true;
+        cfg.minify_js = true;
+        cfg.ensure_spec_compliant_unquoted_attribute_values = true;
         cfg.keep_comments = false;
+        cfg.keep_closing_tags = true;
 
         log::info!("Minifying {}", path.display());
         fs::write(path, minify(contents.as_bytes(), &cfg))
@@ -107,6 +111,7 @@ fn write_html(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     }
 }
 
+/// Writes a CSS file. May minify the file.
 fn write_css(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     use css_minify::optimizations::{Level, Minifier};
 
@@ -158,8 +163,11 @@ fn main() -> io::Result<()> {
                 log::info!("Generating '{}'...", out_path.display());
                 out_path.set_extension("");
                 try_mkdir(&out_path)?;
+                log::debug!(
+                    "Generating index.html redirect for '{}'...",
+                    out_path.display()
+                );
                 write_stub_file(&args, &out_path.join("index.html"))?;
-                out_path.push("_.html");
 
                 let contents =
                     fs::read_to_string(&path).expect("Should have been able to read the file");
@@ -171,6 +179,12 @@ fn main() -> io::Result<()> {
                 }
                 let html = page::to_html(doc, rel_path)?;
 
+                // Write HTML fragment
+                log::debug!(
+                    "Generating HTML fragment (_.html) for '{}'...",
+                    out_path.display()
+                );
+                out_path.push("_.html");
                 write_html(&args, &out_path, &html)?;
             }
             Some("html") => write_html(&args, &out_path, &fs::read_to_string(path)?)?,
