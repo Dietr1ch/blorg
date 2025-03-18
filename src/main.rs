@@ -8,7 +8,7 @@ use indoc::indoc;
 use orgize::Org;
 use walkdir::WalkDir;
 
-use forg::page;
+use blorg::page;
 
 /// Command line arguments
 #[derive(Parser, Debug)]
@@ -158,6 +158,7 @@ fn main() -> io::Result<()> {
         .into_iter()
         .filter_map(|e| e.ok().map(|e| e.into_path()))
     {
+        log::debug!("Processing '{}'", path.display());
         let rel_path: &Path = path.strip_prefix(&args.dir).unwrap();
         let mut out_path: PathBuf = args.outdir.clone();
         out_path.push(rel_path);
@@ -233,8 +234,10 @@ fn main() -> io::Result<()> {
         .language(args.language)
         .items(rss_entries)
         .build();
+
     use rss::validation::Validate;
     channel.validate().unwrap();
+
     let mut rss_out_path: PathBuf = args.outdir.clone();
     rss_out_path.push("feed.rss");
     log::info!("Will write RSS feed to '{}'", rss_out_path.display());
