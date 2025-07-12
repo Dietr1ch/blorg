@@ -74,7 +74,10 @@ fn try_mkdir(path: &Path) -> io::Result<()> {
 
 /// Writes an index.html file redirecting to the root SPA with the path as an argument
 fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
-    write_html(args, path, indoc! {r###"
+    write_html(
+        args,
+        path,
+        indoc! {r###"
         <!DOCTYPE html>
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
         	<head>
@@ -90,7 +93,8 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
         	<body>
         	</body>
         </html>
-    "###})
+    "###},
+    )
 }
 
 /// Writes an HTML file. May minify the file.

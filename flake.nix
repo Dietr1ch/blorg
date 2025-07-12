@@ -1,153 +1,108 @@
 {
   inputs = {
     nixpkgs = {
-      url = "github:cachix/devenv-nixpkgs/rolling";
+      url = "github:NixOS/nixpkgs";
     };
-    systems = {
-      url = "github:nix-systems/default";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    devenv = {
-      url = "github:cachix/devenv";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-    fenix = {
-      url = "github:nix-community/fenix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-  };
-
-  nixConfig = {
-    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
-    extra-substituters = "https://devenv.cachix.org";
   };
 
   outputs =
     { self
     , nixpkgs
-    , devenv
-    , systems
-    , ...
-    }@inputs:
+    , rust-overlay
+    ,
+    }:
     let
-      forEachSystem = nixpkgs.lib.genAttrs (import systems);
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+      forEachSupportedSystem =
+        f:
+        nixpkgs.lib.genAttrs supportedSystems (
+          system:
+          f {
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [
+                rust-overlay.overlays.default
+                self.overlays.default
+              ];
+            };
+          }
+        );
     in
     {
-      devShells = forEachSystem (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
+      nix.nixPath = [
+        "nixpkgs=${nixpkgs}"
+      ];
+
+      overlays.default = final: prev: {
+        rustToolchain = prev.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      };
+
+      devShells = forEachSupportedSystem (
+        { pkgs }:
         {
-          default = devenv.lib.mkShell {
-            inherit inputs pkgs;
-            modules = [
-              {
-                env = {
-                  "SERVER_CONFIG_FILE" = "server.toml";
-                };
+          default = pkgs.mkShell rec {
+            buildInputs = with pkgs; [
+              rustToolchain
 
-                # https://devenv.sh/reference/languages/
-                languages = {
-                  rust = {
-                    # https://devenv.sh/reference/options/#languagesrustenable
-                    enable = true;
-                    channel = "nightly";
-                    mold = {
-                      enable = true;
-                    };
+              llvmPackages.bintools
+              llvmPackages.bolt
+              mold
+              rustc
+              cargo
+              rustup
 
-                    # https://devenv.sh/reference/options/#languagesrustrustflags
-                    # NOTE: This must be kept in sync with .cargo/config.toml
-                    rustflags = nixpkgs.lib.strings.concatStringsSep " " [
-                    ];
-                  };
-                };
-
-                # https://devenv.sh/reference/options/#packages
-                packages = with pkgs; [
-                  just
-                  static-web-server
-
-                  # Rust
-                  bacon
-
-                  rust-analyzer
-
-                  cargo-edit
-                  cargo-outdated
-                  cargo-deny
-                  cargo-bloat
-                  cargo-modules
-
-                  cargo-criterion
-                  cargo-flamegraph
-
-                  cargo-fuzz
-                ];
-
-                # https://devenv.sh/reference/options/#pre-commit
-                pre-commit = {
-                  # https://devenv.sh/reference/options/#pre-commithooks
-                  hooks = {
-                    # Filesystem
-                    check-symlinks = {
-                      enable = true;
-                    };
-
-                    # TOML
-                    check-toml = {
-                      enable = true;
-                    };
-
-                    # Spelling
-                    hunspell = {
-                      enable = true;
-                      entry = "${pkgs.hunspell}/bin/hunspell -d 'en_GB' -p .spelling/dictionary,.spelling/html,.spelling/horrors -l";
-                    };
-
-                    # Secrets
-                    ripsecrets = {
-                      enable = true;
-                    };
-
-                    # Nix
-                    nixpkgs-fmt = {
-                      enable = true;
-                    };
-
-                    # Rust
-                    cargo-check = {
-                      enable = true;
-                    };
-                    clippy = {
-                      enable = true;
-                      settings = {
-                        allFeatures = true;
-                      };
-                    };
-                    rustfmt = {
-                      enable = true;
-                    };
-                  };
-                };
-
-                enterShell = ''
-                  cargo --version
-                  rustc --version
-                '';
-
-                enterTest = ''
-                  cargo test
-                '';
-              }
+              rust-jemalloc-sys
             ];
+
+            packages = with pkgs; [
+              # Spelling
+              hunspell
+              hunspellDicts.en_GB-large
+
+              # Project
+              static-web-server
+              just
+
+              # Git
+              ripsecrets
+
+              # Nix
+              nixfmt-rfc-style
+
+              # Rust
+              bacon
+              cargo-bloat
+              cargo-criterion
+              cargo-deny
+              cargo-edit
+              cargo-flamegraph
+              cargo-modules
+              cargo-outdated
+            ];
+
+            env = {
+              # Bevy (https://github.com/bevyengine/bevy/blob/main/docs/linux_dependencies.md#nix)
+              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
+
+              # Spelling
+              DICTIONARY = "en_GB";
+              DICPATH = "${pkgs.hunspell}/bin/hunspell";
+
+              # Rust
+              # RUSTFLAGS = "-C target-cpu=native";  # NOTE: This ruins reproducibility
+              ## Required by rust-analyzer
+              RUST_SRC_PATH = "${pkgs.rustToolchain}/lib/rustlib/src/rust/library";
+            };
           };
         }
-      );
+      ); # ..devShells
+
     };
 }
