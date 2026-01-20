@@ -14,5 +14,5 @@ test:
 
 
 serve:
-    xdg-open http://localhost:3333/
+    xdg-open http://localhost:3333/ || echo "Go to http://localhost:3333/"
     static-web-server
