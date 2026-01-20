@@ -8,6 +8,11 @@ build:
       --minify-html \
       --minifier-copy-on-failure \
 
+
+test:
+    cargo test  --all-targets --no-fail-fast
+
+
 serve:
     xdg-open http://localhost:3333/
     static-web-server
