@@ -74,7 +74,7 @@
               ripsecrets
 
               # Nix
-              nixfmt-rfc-style
+              nixfmt
 
               # Rust
               bacon
