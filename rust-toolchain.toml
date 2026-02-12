@@ -1,6 +1,6 @@
 [toolchain]
 channel = "nightly"
-# channel = "1.86.0"
+# channel = "1.92.0"
 # See `rustup component list`
 components = [
     "clippy",
