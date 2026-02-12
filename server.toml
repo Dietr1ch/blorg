@@ -5,8 +5,8 @@ port = 3333
 
 log-level = "info"
 
-page404 = ".github/404.html"  # out/.github/404.html
-page50x = ".github/50x.html"  # out/.github/50x.html
+page404 = ".404.html"  # site/.404.html
+page50x = ".50x.html"  # site/.50x.html
 
 
 [advanced]
