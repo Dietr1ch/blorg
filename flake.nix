@@ -50,15 +50,6 @@
           default = pkgs.mkShell rec {
             buildInputs = with pkgs; [
               rustToolchain
-
-              llvmPackages.bintools
-              llvmPackages.bolt
-              mold
-              rustc
-              cargo
-              rustup
-
-              rust-jemalloc-sys
             ];
 
             packages = with pkgs; [
