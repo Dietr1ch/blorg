@@ -8,6 +8,17 @@ build:
 	  --minify-html \
 	  --minifier-copy-on-failure
 
+fmt:
+	  cargo fmt
+
+clippy:
+	cargo clippy \
+	  --all-targets \
+	  --all-features \
+	  --allow-dirty \
+	  --fix
+
+
 
 test:
 	cargo test  --all-targets --no-fail-fast
