@@ -1,18 +1,18 @@
 build:
-    mkdir -p $OUTDIR
-    rm -f output.log
+	mkdir -p $OUTDIR
+	rm -f output.log
 
-    cargo run \
-      -- \
-      --log-level 'Debug' \
-      --minify-html \
-      --minifier-copy-on-failure \
+	cargo run \
+	  -- \
+	  --log-level 'Debug' \
+	  --minify-html \
+	  --minifier-copy-on-failure
 
 
 test:
-    cargo test  --all-targets --no-fail-fast
+	cargo test  --all-targets --no-fail-fast
 
 
 serve:
-    xdg-open http://localhost:3333/ || echo "Go to http://localhost:3333/"
-    static-web-server
+	xdg-open http://localhost:3333/ || echo "Go to http://localhost:3333/"
+	static-web-server
