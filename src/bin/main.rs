@@ -248,7 +248,10 @@ fn main() -> io::Result<()> {
                     if (new_file.len() == old_file.len())
                         && (new_file.modified()? <= old_file.modified()?)
                     {
-                        log::debug!("Skipping write '{}'", out_path.display());
+                        log::debug!(
+                            "Skipping writing of up-to-date file '{}'",
+                            out_path.display()
+                        );
                         continue;
                     }
                 }
