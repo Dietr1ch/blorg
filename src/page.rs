@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::path::PathBuf;
 
 use indoc::indoc;
 use orgize::Org;
@@ -47,6 +46,8 @@ pub fn to_rss_item(config: &RssConfig, doc: &Org, file_rel_path: &Path) -> Optio
 
 pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error> {
     let mut html_export = HtmlExport::default();
+    let file_name = file_rel_path.file_name().unwrap().to_str().unwrap();
+    let file_stem = file_name.trim_end_matches(".org");
 
     assert!(file_rel_path.is_relative());
 
@@ -83,13 +84,12 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
             Event::Enter(Container::Link(link)) => {
                 let path = link.path();
                 let mut path: &str = path.trim_start_matches("file:");
+                log::debug!("Linking to: {path:?}");
 
-                let local_link_prefix = format!(
-                    "./{}/",
-                    PathBuf::from(path).iter().nth(1).unwrap().to_str().unwrap()
-                );
+                let local_link_prefix = format!("./{file_stem}/");
 
                 // Handle local links
+                let is_local_org_link = path.ends_with("/") || path.ends_with(".org");
                 let is_local_link = path.starts_with(&local_link_prefix);
                 if is_local_link {
                     path = path.strip_prefix(&local_link_prefix).unwrap();
@@ -107,8 +107,9 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                 }
 
                 html_export.push_str(if is_local_link {
-                    format!(
-                        indoc! {r###"
+                    if is_local_org_link {
+                        format!(
+                            indoc! {r###"
                                 <a hx-get="{0}/_.html"
                                   preload
                                   hx-target="#content"
@@ -116,10 +117,22 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                                   hx-history-target="{0}/"
                                   aria-controls="content"
                                   href="{0}"
-                                  class="">
+                                  />
                         "###},
-                        target
-                    )
+                            target
+                        )
+                    } else {
+                        // Not a local .org link
+                        format!(
+                            indoc! {r###"
+                                <a target="blank"
+                                  preload
+                                  href="{0}"
+                                  />
+                        "###},
+                            target
+                        )
+                    }
                 } else {
                     format!(
                         indoc! {r###"
@@ -132,7 +145,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                 });
 
                 if !link.has_description() {
-                    html_export.push_str(format!("{}</a>", target));
+                    html_export.push_str(format!("{}</a>", target.0.trim()));
                     ctx.skip();
                 }
             }
