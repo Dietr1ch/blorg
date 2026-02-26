@@ -89,7 +89,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                 let local_link_prefix = format!("./{file_stem}/");
 
                 // Handle local links
-                let is_local_org_link = path.ends_with("/") || path.ends_with(".org");
+                let is_local_org_link = path.ends_with(".org");
                 let is_local_link = path.starts_with(&local_link_prefix);
                 if is_local_link {
                     path = path.strip_prefix(&local_link_prefix).unwrap();
