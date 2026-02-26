@@ -52,10 +52,10 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
     assert!(file_rel_path.is_relative());
 
     let mut base_depth = 0i8;
-    if let Some(properties) = doc.document().properties() {
-        if let Some(base_depth_token) = properties.get("base_depth") {
-            base_depth = base_depth_token.as_ref().parse::<i8>().unwrap_or(0);
-        }
+    if let Some(properties) = doc.document().properties()
+        && let Some(base_depth_token) = properties.get("base_depth")
+    {
+        base_depth = base_depth_token.as_ref().parse::<i8>().unwrap_or(0);
     }
 
     let mut handler = from_fn_with_ctx(|event, ctx| {

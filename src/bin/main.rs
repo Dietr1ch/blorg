@@ -172,13 +172,13 @@ fn should_be_skipped(file_name: &str) -> bool {
             return true;
         }
     }
-    return false;
+
+    false
 }
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
-    setup_logger(&args)
-        .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to setup logging"))?;
+    setup_logger(&args).map_err(|_| io::Error::other("Failed to setup logging"))?;
 
     let rss_config = page::RssConfig::new(args.root_address.clone());
 
