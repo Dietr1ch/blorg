@@ -145,6 +145,35 @@ static SKIP: &[&str] = &[
     ".projectile",
     "Justfile",
 ];
+static PREFIX_SKIP: &[&str] = &[
+    // Temporary files
+    ".#",
+];
+static SUFFIX_SKIP: &[&str] = &[
+    // Backups
+    ".bak", ".tmp",
+];
+
+#[inline(always)]
+fn should_be_skipped(file_name: &str) -> bool {
+    for s in SKIP {
+        if file_name == *s {
+            return true;
+        }
+    }
+
+    for ps in PREFIX_SKIP {
+        if file_name.starts_with(*ps) {
+            return true;
+        }
+    }
+    for ss in SUFFIX_SKIP {
+        if file_name.starts_with(*ss) {
+            return true;
+        }
+    }
+    return false;
+}
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
@@ -172,11 +201,11 @@ fn main() -> io::Result<()> {
             continue;
         }
 
-        for s in SKIP {
-            if rel_path.file_name().unwrap() == *s {
-                log::info!("skipping {}", s);
-                continue;
-            }
+        let file_name = rel_path.file_name().unwrap().to_str().unwrap();
+
+        if should_be_skipped(file_name) {
+            log::info!("skipping {rel_path:?}");
+            continue;
         }
 
         match path.extension().and_then(|s| s.to_str()) {
