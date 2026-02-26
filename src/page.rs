@@ -116,8 +116,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                                   hx-push-url="{0}/"
                                   hx-history-target="{0}/"
                                   aria-controls="content"
-                                  href="{0}"
-                                  />
+                                  href="{0}" />
                         "###},
                             target
                         )
@@ -127,8 +126,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                             indoc! {r###"
                                 <a target="blank"
                                   preload
-                                  href="{0}"
-                                  />
+                                  href="{0}" />
                         "###},
                             target
                         )
@@ -138,7 +136,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                         indoc! {r###"
                                 <a href="{}"
                                   preload
-                                  target="_blank">
+                                  target="_blank" />
                         "###},
                         target
                     )
@@ -186,19 +184,19 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                     match (k.as_ref(), v.as_ref()) {
                         ("ID", id) => {
                             html_export.push_str(format!(
-                                "<meta property=\"article:id\" content=\"{}\">",
+                                "<meta property=\"article:id\" content=\"{}\" />",
                                 id,
                             ));
                         }
                         ("published_time", published_time) => {
                             html_export.push_str(format!(
-                                "<meta property=\"article:published_time\" content=\"{}\">",
+                                "<meta property=\"article:published_time\" content=\"{}\" />",
                                 published_time,
                             ));
                         }
                         ("modified_time", modified_time) => {
                             html_export.push_str(format!(
-                                "<meta property=\"article:modified_time\" content=\"{}\">",
+                                "<meta property=\"article:modified_time\" content=\"{}\" />",
                                 modified_time,
                             ));
                         }
@@ -226,7 +224,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                     html_export.push_str(format!("<section id=\"{}\">", slug));
                     //   <$TAG>
                     html_export.push_str(format!("<{tag}>"));
-                    //     <a href="SLUG($TITLE)">
+                    //     <a href="SLUG($TITLE)" />
                     html_export.push_str(format!("<a href=\"#{0}\">", slug));
                     if headline.is_todo() {
                         html_export.push_str("<span class=\"org_todo\">TODO</span> ");
