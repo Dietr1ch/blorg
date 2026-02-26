@@ -83,11 +83,13 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
         	<head>
         		<title>Redirecting to root page...</title>
         		<script type="text/javascript">
-        var l = window.location;
-        l.replace(
-          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          '/?/' + l.pathname.slice(1) + l.hash
-        );
+        const l = window.location;
+        var url = new URL(window.location);
+        var ps = new URLSearchParams(url.search);
+        ps.set("path", url.pathname);
+        url.pathname = "/";
+        url.search = ps;
+        l.replace(url);
         		</script>
         	</head>
         	<body>
