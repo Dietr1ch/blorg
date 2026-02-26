@@ -60,8 +60,6 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
     let mut handler = from_fn_with_ctx(|event, ctx| {
         match event {
             Event::Enter(Container::Document(_doc)) => {
-                html_export.push_str("<main>");
-
                 // Add title if present
                 if let Some(title) = doc.title() {
                     // Parse title as Org document
