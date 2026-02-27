@@ -157,7 +157,7 @@ static SUFFIX_SKIP: &[&str] = &[
 ];
 
 #[inline(always)]
-fn should_be_skipped(file_name: &str) -> bool {
+fn file_should_be_skipped(file_name: &str) -> bool {
     for s in SKIP {
         if file_name == *s {
             return true;
@@ -172,6 +172,23 @@ fn should_be_skipped(file_name: &str) -> bool {
     for ss in SUFFIX_SKIP {
         if file_name.starts_with(*ss) {
             return true;
+        }
+    }
+
+    false
+}
+
+#[inline(always)]
+fn org_should_be_skipped(_doc: &Org, contents: &str) -> bool {
+    const FILETAGS_PREFIX: &str = "#+filetags: ";
+
+    for l in contents.lines() {
+        if l.starts_with(FILETAGS_PREFIX) {
+            for t in l.trim_start_matches(FILETAGS_PREFIX).split(":") {
+                if t == "Draft" {
+                    return true;
+                }
+            }
         }
     }
 
@@ -205,8 +222,8 @@ fn main() -> io::Result<()> {
 
         let file_name = rel_path.file_name().unwrap().to_str().unwrap();
 
-        if should_be_skipped(file_name) {
-            log::info!("skipping {rel_path:?}");
+        if file_should_be_skipped(file_name) {
+            log::info!("Skipping {rel_path:?}");
             continue;
         }
 
@@ -225,6 +242,11 @@ fn main() -> io::Result<()> {
                     fs::read_to_string(&path).expect("Should have been able to read the file");
 
                 let doc = Org::parse(&contents);
+
+                if org_should_be_skipped(&doc, &contents) {
+                    log::info!("Skipping {rel_path:?} because of its tags");
+                    continue;
+                }
 
                 if let Some(rss_entry) = page::to_rss_item(&rss_config, &doc, rel_path) {
                     rss_entries.push(rss_entry);
