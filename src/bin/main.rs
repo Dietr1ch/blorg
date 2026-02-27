@@ -86,7 +86,7 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
         const l = window.location;
         var url = new URL(window.location);
         var ps = new URLSearchParams(url.search);
-        ps.set("path", url.pathname);
+        ps.set("p", url.pathname);
         url.pathname = "/";
         url.search = ps;
         l.replace(url);

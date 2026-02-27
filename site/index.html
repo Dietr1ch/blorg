@@ -68,8 +68,8 @@
 			<script>
 				var l = new URL(window.location);
 				var ps = new URLSearchParams(l.search);
-				var p = ps.get("path") || "/about/";
-				ps.delete("path");
+				var p = ps.get("p") || "/about/";
+				ps.delete("p");
 				l.pathname = p;
 				l.search = ps;
 
