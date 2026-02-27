@@ -230,14 +230,23 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
 
                 if title.starts_with(".") {
                     base_depth -= 1;
+
                     html_export.push_str(format!(
-                        "<div class=\"{}\">",
+                        "<div class=\"s{} {}\">",
+                        headline.level(),
                         title.replace(".", " ").trim()
                     ));
                 } else {
                     // <section id="$SLUG(TITLE)">
-                    html_export.push_str(format!("<section id=\"{}\">", slug));
+                    html_export.push_str(format!(
+                        "<section id=\"{}\" class=\"s{}\">",
+                        slug,
+                        headline.level(),
+                    ));
+                    //   <hgroup>
                     //   <$HEADING>
+                    // TODO: Add hgroup support
+                    // html_export.push_str(format!("<hgroup>"));
                     html_export.push_str(format!("<{heading}>"));
                     //     <a href="SLUG($TITLE)" />
                     html_export.push_str(format!("<a href=\"#{0}\">", slug));
@@ -255,7 +264,10 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
                     //     </a>
                     html_export.push_str("</a>");
                     //   </$HEADING>
+                    //   </hgroup>
                     html_export.push_str(format!("</{heading}>"));
+                    // TODO: Add hgroup support
+                    // html_export.push_str(format!("</hgroup>"));
                 }
             }
             Event::Leave(Container::Headline(headline)) => {
