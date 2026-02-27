@@ -7,7 +7,7 @@ use orgize::export::HtmlExport;
 use orgize::export::{Container, Event, Traverser, from_fn_with_ctx};
 use slugify::slugify;
 
-const HEADING_HTML_ELEMENT: [&str; 6] = ["h1", "h2", "h3", "h4", "h5", "h6"];
+const HTML_HEADING_LEVELS: [&str; 6] = ["h1", "h2", "h3", "h4", "h5", "h6"];
 
 pub struct RssConfig {
     root_address: String,
@@ -71,13 +71,13 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                     let mut html = HtmlExport::default();
                     html.render(title.syntax());
                     let title_html = html.finish();
-                    // Drop surrounding <p>...</p> tags
+                    // Drop surrounding <p>...</p>
                     let title_html = &title_html[3..title_html.len() - 3 - 1];
 
                     let depth = base_depth;
-                    let tag = HEADING_HTML_ELEMENT[(depth - 1).clamp(0, 5) as usize];
+                    let heading = HTML_HEADING_LEVELS[(depth - 1).clamp(0, 5) as usize];
 
-                    html_export.push_str(format!(r#"<{tag}>{title_html}</{tag}>"#));
+                    html_export.push_str(format!(r#"<{heading}>{title_html}</{heading}>"#));
                 }
             }
 
@@ -209,7 +209,7 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
 
             Event::Enter(Container::Headline(headline)) => {
                 let depth = (headline.level() as i8) + base_depth;
-                let tag = HEADING_HTML_ELEMENT[(depth - 1).clamp(0, 5) as usize];
+                let heading = HTML_HEADING_LEVELS[(depth - 1).clamp(0, 5) as usize];
                 let title = headline.title().map(|e| e.to_string()).collect::<String>();
                 let slug = slugify!(&title);
 
@@ -222,8 +222,8 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                 } else {
                     // <section id="$SLUG(TITLE)">
                     html_export.push_str(format!("<section id=\"{}\">", slug));
-                    //   <$TAG>
-                    html_export.push_str(format!("<{tag}>"));
+                    //   <$HEADING>
+                    html_export.push_str(format!("<{heading}>"));
                     //     <a href="SLUG($TITLE)" />
                     html_export.push_str(format!("<a href=\"#{0}\">", slug));
                     if headline.is_todo() {
@@ -239,8 +239,8 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
 
                     //     </a>
                     html_export.push_str("</a>");
-                    //   </$TAG>
-                    html_export.push_str(format!("</{tag}>"));
+                    //   </$HEADING>
+                    html_export.push_str(format!("</{heading}>"));
                 }
             }
             Event::Leave(Container::Headline(headline)) => {
