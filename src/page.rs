@@ -44,7 +44,7 @@ pub fn to_rss_item(config: &RssConfig, doc: &Org, file_rel_path: &Path) -> Optio
     Some(item.build())
 }
 
-pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error> {
+pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String, std::io::Error> {
     let mut html_export = HtmlExport::default();
     let file_name = file_rel_path.file_name().unwrap().to_str().unwrap();
     let file_stem = file_name.trim_end_matches(".org");
@@ -77,7 +77,22 @@ pub fn to_html(doc: Org, file_rel_path: &Path) -> Result<String, std::io::Error>
                     let depth = base_depth;
                     let heading = HTML_HEADING_LEVELS[(depth - 1).clamp(0, 5) as usize];
 
-                    html_export.push_str(format!(r#"<{heading}>{title_html}</{heading}>"#));
+                    if tags.is_empty() {
+                        // <H*>$TITLE</H*>
+                        html_export.push_str(format!(r#"<{heading}>{title_html}</{heading}>"#));
+                    } else {
+                        // <hgroup>
+                        //   <H*>$TITLE</H*>
+                        //   <p>Tags: <dd-tag>TAG</dd-tag>...</p>
+                        // </hgroup>
+                        html_export.push_str(format!(
+                            r#"<hgroup><{heading}>{title_html}</{heading}><p>Tags:"#
+                        ));
+                        for t in tags {
+                            html_export.push_str(format!(r#" <dd-tag>{t}</dd-tag>"#));
+                        }
+                        html_export.push_str(format!(r#"</p></hgroup>"#));
+                    }
                 }
             }
 

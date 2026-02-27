@@ -178,20 +178,36 @@ fn file_should_be_skipped(file_name: &str) -> bool {
     false
 }
 
-#[inline(always)]
-fn org_should_be_skipped(_doc: &Org, contents: &str) -> bool {
-    const FILETAGS_PREFIX: &str = "#+filetags: ";
+fn org_tags(_doc: &Org, contents: &str) -> Vec<String> {
+    let mut tags = vec![];
 
+    const FILETAGS_PREFIX: &str = "#+filetags: ";
     for l in contents.lines() {
         if l.starts_with(FILETAGS_PREFIX) {
             for t in l.trim_start_matches(FILETAGS_PREFIX).split(":") {
-                if t == "Draft" {
-                    return true;
+                if t.is_empty() {
+                    continue;
+                }
+                if t.chars().nth(0).unwrap().is_uppercase() {
+                    tags.push(String::from(t));
+                } else {
+                    log::debug!("Ignoring '{t}' tag because doesn't start with Uppercase");
+                    continue;
                 }
             }
         }
     }
 
+    tags
+}
+
+#[inline(always)]
+fn org_should_be_skipped(_doc: &Org, _contents: &str, tags: &[String]) -> bool {
+    for t in tags {
+        if *t == "Draft" {
+            return true;
+        }
+    }
     false
 }
 
@@ -242,8 +258,9 @@ fn main() -> io::Result<()> {
                     fs::read_to_string(&path).expect("Should have been able to read the file");
 
                 let doc = Org::parse(&contents);
+                let tags = org_tags(&doc, &contents);
 
-                if org_should_be_skipped(&doc, &contents) {
+                if org_should_be_skipped(&doc, &contents, &tags) {
                     log::info!("Skipping {rel_path:?} because of its tags");
                     continue;
                 }
@@ -251,7 +268,7 @@ fn main() -> io::Result<()> {
                 if let Some(rss_entry) = page::to_rss_item(&rss_config, &doc, rel_path) {
                     rss_entries.push(rss_entry);
                 }
-                let html = page::to_html(doc, rel_path)?;
+                let html = page::to_html(doc, &tags, rel_path)?;
 
                 // Write HTML fragment
                 log::debug!(
