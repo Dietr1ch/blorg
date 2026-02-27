@@ -72,8 +72,6 @@
 				ps.delete("p");
 				l.pathname = p;
 				l.search = ps;
-
-				console.log("Should adjust path to ", p);
 				window.history.replaceState(null, null, p);
 
 				htmx.config.globalViewTransitions = true;
