@@ -1,3 +1,80 @@
+/*
+ Reset
+ =====
+
+ - https://www.joshwcomeau.com/css/custom-css-reset/
+*/
+
+/* 1. Use a more-intuitive box-sizing model */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 2. Remove default margin */
+*:not(dialog) {
+  margin: 0;
+}
+
+/* 3. Enable keyword animations */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    interpolate-size: allow-keywords;
+  }
+}
+
+body {
+  /* 4. Add accessible line-height */
+  line-height: 1.5;
+  /* 5. Improve text rendering */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 6. Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* 7. Inherit fonts for form controls */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* 8. Avoid text overflows */
+/* 9. Improve line wrapping */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+p {
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-wrap: pretty;
+  word-break: auto-phrase;
+}
+a {
+  background-color: transparent;
+}
+
+/*
+ Style
+ =====
+*/
+
 :root {
 	--fg-color: #fff;
 	--fg-color-alt: #aaa;
@@ -220,8 +297,17 @@ h6 {
 }
 
 span.org_todo {
-	color: salmon;
+  color: salmon;
 }
 span.org_todo_done {
-	color: lightgreen;
+  color: lightgreen;
+}
+
+.debug {
+  border: 1px solid hsl(204 30% 52%);
+  background-color: hsl(204 30% 52% / 20%);
+}
+.debug2 {
+  border: 1px solid hsl(24 30% 52%);
+  background-color: hsl(24 30% 52% / 20%);
 }
