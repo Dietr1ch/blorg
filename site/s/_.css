@@ -101,7 +101,7 @@ a {
 		--shadow-color: rgba(0, 0, 0, 0.0);
 	}
 	.dont-print {
-		display: none !important;
+		display: none !important;	/* Really important */
 	}
 	section {
 		page-break-inside: avoid;
