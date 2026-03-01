@@ -139,25 +139,27 @@ fn write_css(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     }
 }
 
-/// Files to avoid processing
-static SKIP: &[&str] = &[
-    ".dir-locals.el",
-    ".env",
-    ".gitignore",
-    ".projectile",
-    "Justfile",
-];
-static PREFIX_SKIP: &[&str] = &[
-    // Temporary files
-    ".#",
-];
-static SUFFIX_SKIP: &[&str] = &[
-    // Backups
-    ".bak", ".tmp",
-];
-
 #[inline(always)]
 fn file_should_be_skipped(file_name: &str) -> bool {
+    /// Files to avoid processing
+    static SKIP: &[&str] = &[
+        ".dir-locals.el",
+        ".env",
+        ".git",
+        ".gitignore",
+        ".projectile",
+        "Justfile",
+        "TODOs.org",
+    ];
+    static PREFIX_SKIP: &[&str] = &[
+        // Temporary files
+        ".#",
+    ];
+    static SUFFIX_SKIP: &[&str] = &[
+        // Backups
+        ".bak", ".tmp",
+    ];
+
     for s in SKIP {
         if file_name == *s {
             return true;
@@ -211,6 +213,18 @@ fn org_should_be_skipped(_doc: &Org, _contents: &str, tags: &[String]) -> bool {
     false
 }
 
+#[inline(always)]
+fn dir_should_be_skipped(dir: &walkdir::DirEntry) -> bool {
+    static SKIP_DIR: &[&str] = &[".git"];
+
+    for d in SKIP_DIR {
+        if dir.file_name() == *d {
+            return true;
+        }
+    }
+    false
+}
+
 fn main() -> io::Result<()> {
     let args = Args::parse();
     setup_logger(&args).map_err(|_| io::Error::other("Failed to setup logging"))?;
@@ -224,6 +238,7 @@ fn main() -> io::Result<()> {
         .same_file_system(true)
         .min_depth(1)
         .into_iter()
+        .filter_entry(|d| !dir_should_be_skipped(d))
         .filter_map(|e| e.ok().map(|e| e.into_path()))
     {
         log::debug!("Processing '{}'", path.display());
@@ -246,14 +261,6 @@ fn main() -> io::Result<()> {
         match path.extension().and_then(|s| s.to_str()) {
             Some("org") => {
                 log::info!("Generating '{}'...", out_path.display());
-                out_path.set_extension("");
-                try_mkdir(&out_path)?;
-                log::debug!(
-                    "Generating index.html redirect for '{}'...",
-                    out_path.display()
-                );
-                write_stub_file(&args, &out_path.join("index.html"))?;
-
                 let contents =
                     fs::read_to_string(&path).expect("Should have been able to read the file");
 
@@ -264,6 +271,14 @@ fn main() -> io::Result<()> {
                     log::info!("Skipping {rel_path:?} because of its tags");
                     continue;
                 }
+
+                out_path.set_extension("");
+                try_mkdir(&out_path)?;
+                log::debug!(
+                    "Generating index.html redirect for '{}'...",
+                    out_path.display()
+                );
+                write_stub_file(&args, &out_path.join("index.html"))?;
 
                 if let Some(rss_entry) = page::to_rss_item(&rss_config, &doc, rel_path) {
                     rss_entries.push(rss_entry);
