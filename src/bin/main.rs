@@ -170,7 +170,7 @@ fn file_should_be_skipped(file_name: &str) -> bool {
         }
     }
     for ss in SUFFIX_SKIP {
-        if file_name.starts_with(*ss) {
+        if file_name.ends_with(*ss) {
             return true;
         }
     }
