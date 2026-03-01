@@ -1,7 +1,7 @@
 # https://static-web-server.net/configuration/config-file/
 
 [general]
-port = 3333
+port = 3003
 
 log-level = "info"
 
