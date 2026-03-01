@@ -91,7 +91,7 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
                         for t in tags {
                             html_export.push_str(format!(r#" <dd-tag>{t}</dd-tag>"#));
                         }
-                        html_export.push_str(format!(r#"</p></hgroup>"#));
+                        html_export.push_str(r#"</p></hgroup>"#);
                     }
                 }
             }

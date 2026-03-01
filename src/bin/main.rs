@@ -188,7 +188,7 @@ fn org_tags(_doc: &Org, contents: &str) -> Vec<String> {
                 if t.is_empty() {
                     continue;
                 }
-                if t.chars().nth(0).unwrap().is_uppercase() {
+                if t.chars().next().unwrap().is_uppercase() {
                     tags.push(String::from(t));
                 } else {
                     log::debug!("Ignoring '{t}' tag because doesn't start with Uppercase");
