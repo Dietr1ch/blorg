@@ -44,6 +44,29 @@ pub fn to_rss_item(config: &RssConfig, doc: &Org, file_rel_path: &Path) -> Optio
     Some(item.build())
 }
 
+pub fn org_tags(_doc: &Org, contents: &str) -> Vec<String> {
+    let mut tags = vec![];
+
+    const FILETAGS_PREFIX: &str = "#+filetags: ";
+    for l in contents.lines() {
+        if l.starts_with(FILETAGS_PREFIX) {
+            for t in l.trim_start_matches(FILETAGS_PREFIX).split(":") {
+                if t.is_empty() {
+                    continue;
+                }
+                if t.chars().next().unwrap().is_uppercase() {
+                    tags.push(String::from(t));
+                } else {
+                    log::debug!("Ignoring '{t}' tag because doesn't start with Uppercase");
+                    continue;
+                }
+            }
+        }
+    }
+
+    tags
+}
+
 pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String, std::io::Error> {
     let mut html_export = HtmlExport::default();
     let file_name = file_rel_path.file_name().unwrap().to_str().unwrap();
@@ -164,6 +187,7 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
             }
 
             Event::Enter(Container::SourceBlock(block)) => {
+                // FIXME: Avoid weird prefix spacing? Check https://docs.rs/indoc
                 if let Some(language) = block.language() {
                     html_export.push_str(format!(
                         r#"<pre><code class="language-{}">"#,
@@ -291,4 +315,31 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
     doc.traverse(&mut handler);
 
     Ok(html_export.finish())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use googletest::prelude::*;
+
+    #[gtest]
+    fn simple_doc() {
+        let contents = indoc! {r###"
+          #+title: TITLE
+          * Heading
+          Hi
+        "###};
+        let doc = Org::parse(contents);
+        let tags = org_tags(&doc, contents);
+
+        let rel_path = Path::new("simple_doc.org");
+        let html = to_html(doc, &tags, rel_path);
+
+        expect_that!(
+            html,
+            ok(eq(indoc! {r###"
+              <h1>TITLE</h1><section></section><section id="heading" class="s1"><h1><a href="#heading">Heading</a></h1><section><p>Hi
+              </p></section></section>"###})),
+        );
+    }
 }

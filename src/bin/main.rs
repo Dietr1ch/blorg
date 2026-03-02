@@ -199,29 +199,6 @@ fn file_should_be_skipped(file_name: &str) -> bool {
     false
 }
 
-fn org_tags(_doc: &Org, contents: &str) -> Vec<String> {
-    let mut tags = vec![];
-
-    const FILETAGS_PREFIX: &str = "#+filetags: ";
-    for l in contents.lines() {
-        if l.starts_with(FILETAGS_PREFIX) {
-            for t in l.trim_start_matches(FILETAGS_PREFIX).split(":") {
-                if t.is_empty() {
-                    continue;
-                }
-                if t.chars().next().unwrap().is_uppercase() {
-                    tags.push(String::from(t));
-                } else {
-                    log::debug!("Ignoring '{t}' tag because doesn't start with Uppercase");
-                    continue;
-                }
-            }
-        }
-    }
-
-    tags
-}
-
 #[inline(always)]
 fn org_should_be_skipped(_doc: &Org, _contents: &str, tags: &[String]) -> bool {
     for t in tags {
@@ -284,7 +261,7 @@ fn main() -> io::Result<()> {
                     fs::read_to_string(&path).expect("Should have been able to read the file");
 
                 let doc = Org::parse(&contents);
-                let tags = org_tags(&doc, &contents);
+                let tags = page::org_tags(&doc, &contents);
 
                 if org_should_be_skipped(&doc, &contents, &tags) {
                     log::info!("Skipping {rel_path:?} because of its tags");
