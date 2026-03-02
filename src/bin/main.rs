@@ -72,7 +72,26 @@ fn try_mkdir(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-/// Writes an index.html file redirecting to the root SPA with the path as an argument
+/// Writes an index.html file redirecting to the root SPA with the path as an argument in the search query.
+///
+/// * Implementation alternatives:
+///   - Serving the SPA at every document.
+///     - Seems awful to mantain
+///     - HTTP caching breaks
+///   - Sentinel files redirecting into a single SPA at `/`.
+///     - Using the search query to pass the real path (/?path=$PATH&other=data)
+///
+/// * Redirection alternatives:
+///   1. HTTP
+///      - How to pass extra query params into the redirect?
+///      - Maybe you CAN redirect to `/?path=PATH` and the search query gets merged.
+///      - Can we control this on a shared Web server?
+///   2. JS
+///   3. HTML
+///      - How to pass extra query params into the redirect?
+///
+/// Implementation:
+/// - We went for sentinel files using JS redirects into `/?p=REAL_PATH`.
 fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
     write_html(
         args,
