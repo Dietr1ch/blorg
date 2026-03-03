@@ -91,7 +91,7 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
             }
             Event::Leave(Container::Document(_doc)) => {
                 if requirements.has_code {
-                    html_export.push_str("<script src=\"https://cdn.jsdelivr.net/npm/@arborium/arborium@1/dist/arborium.iife.js\"></script>");
+                    html_export.push_str("<script src=\"https://cdn.jsdelivr.net/npm/@arborium/arborium@1/dist/arborium.iife.js\" data-theme=\"ayu-dark\"></script>");
                 }
             }
 
@@ -347,7 +347,7 @@ mod tests {
               </p><pre><code class="language-rust">pub fn main() {
                 println!(&quot;Hi&quot;);
               }
-              </code></pre></section></section><script src="https://cdn.jsdelivr.net/npm/@arborium/arborium@1/dist/arborium.iife.js"></script>"###})),
+              </code></pre></section></section><script src="https://cdn.jsdelivr.net/npm/@arborium/arborium@1/dist/arborium.iife.js" data-theme="ayu-dark"></script>"###})),
         );
     }
 }
