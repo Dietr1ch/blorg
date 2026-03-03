@@ -4,7 +4,6 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use clap::Parser;
-use indoc::indoc;
 use orgize::Org;
 use walkdir::WalkDir;
 
@@ -94,15 +93,12 @@ fn try_mkdir(path: &Path) -> io::Result<()> {
 /// Implementation:
 /// - We went for sentinel files using JS redirects into `/?p=REAL_PATH`.
 fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
-    write_html(
-        args,
-        path,
-        indoc! {r###"
+    let contents = indoc::formatdoc! {r###"
         <!DOCTYPE html>
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-        	<head>
-        		<title>Redirecting to root page...</title>
-        		<script type="text/javascript">
+          <head>
+            <title>{title}</title>
+            <script type="text/javascript">
         const l = window.location;
         var url = new URL(window.location);
         var ps = new URLSearchParams(url.search);
@@ -110,13 +106,16 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
         url.pathname = "/";
         url.search = ps;
         l.replace(url);
-        		</script>
-        	</head>
-        	<body>
-        	</body>
+            </script>
+          </head>
+          <body>
+          </body>
         </html>
-    "###},
-    )
+        "###,
+        title = args.title,
+    };
+
+    write_html(args, path, &contents)
 }
 
 /// Writes an HTML file. May minify the file.
