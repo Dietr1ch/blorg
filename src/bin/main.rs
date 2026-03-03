@@ -8,6 +8,7 @@ use indoc::indoc;
 use orgize::Org;
 use walkdir::WalkDir;
 
+use blorg::feed;
 use blorg::page;
 
 /// Command line arguments
@@ -225,11 +226,16 @@ fn main() -> io::Result<()> {
     let args = Args::parse();
     setup_logger(&args).map_err(|_| io::Error::other("Failed to setup logging"))?;
 
-    let rss_config = page::RssConfig::new(args.root_address.clone());
-
     let now = chrono::Local::now();
 
-    let mut rss_entries: Vec<rss::Item> = vec![];
+    let mut sitemap = feed::Sitemap::new(
+        args.root_address.clone(),
+        args.title.clone(),
+        args.description.clone(),
+        args.language.clone(),
+        now,
+    );
+
     for path in WalkDir::new(&args.dir)
         .same_file_system(true)
         .min_depth(1)
@@ -276,10 +282,8 @@ fn main() -> io::Result<()> {
                 );
                 write_stub_file(&args, &out_path.join("index.html"))?;
 
-                if let Some(rss_entry) = page::to_rss_item(&rss_config, &doc, rel_path) {
-                    rss_entries.push(rss_entry);
-                }
-                let html = page::to_html(doc, &tags, rel_path)?;
+                sitemap.push(&doc, &rel_path);
+                let html = page::to_html(doc, &tags, &rel_path)?;
 
                 // Write HTML fragment
                 log::debug!(
@@ -314,22 +318,7 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let channel: rss::Channel = rss::ChannelBuilder::default()
-        .title(args.title)
-        .link(args.root_address)
-        .description(args.description)
-        .last_build_date(Some(now.to_rfc2822()))
-        .language(args.language)
-        .items(rss_entries)
-        .build();
-
-    use rss::validation::Validate;
-    channel.validate().unwrap();
-
-    let mut rss_out_path: PathBuf = args.outdir.clone();
-    rss_out_path.push("feed.rss");
-    log::info!("Will write RSS feed to '{}'", rss_out_path.display());
-    fs::write(rss_out_path, channel.to_string())?;
+    sitemap.generate(&args.outdir);
 
     Ok(())
 }

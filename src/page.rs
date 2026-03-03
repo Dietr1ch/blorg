@@ -9,41 +9,6 @@ use slugify::slugify;
 
 const HTML_HEADING_LEVELS: [&str; 6] = ["h1", "h2", "h3", "h4", "h5", "h6"];
 
-pub struct RssConfig {
-    root_address: String,
-}
-
-impl RssConfig {
-    pub fn new(root_address: String) -> Self {
-        Self { root_address }
-    }
-}
-
-pub fn to_rss_item(config: &RssConfig, doc: &Org, file_rel_path: &Path) -> Option<rss::Item> {
-    let mut item = rss::ItemBuilder::default();
-
-    if let Some(properties) = doc.document().properties() {
-        if properties.get("skip_feed").is_some() {
-            return None;
-        }
-
-        if let Some(title) = properties.get("title") {
-            item.title(title.to_string());
-        }
-        if let Some(description) = properties.get("description") {
-            item.description(description.to_string());
-        }
-        if let Some(publication_date) = properties.get("publication_date") {
-            item.pub_date(publication_date.to_string());
-        }
-        let mut path = file_rel_path.to_path_buf();
-        path.set_extension("");
-        item.link(Some(format!("{}/{}", config.root_address, path.display())));
-    }
-
-    Some(item.build())
-}
-
 pub fn org_tags(_doc: &Org, contents: &str) -> Vec<String> {
     let mut tags = vec![];
 
@@ -67,10 +32,16 @@ pub fn org_tags(_doc: &Org, contents: &str) -> Vec<String> {
     tags
 }
 
+#[derive(Debug, Default)]
+struct PageRequirements {
+    has_code: bool,
+}
+
 pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String, std::io::Error> {
     let mut html_export = HtmlExport::default();
     let file_name = file_rel_path.file_name().unwrap().to_str().unwrap();
     let file_stem = file_name.trim_end_matches(".org");
+    let mut requirements = PageRequirements::default();
 
     assert!(file_rel_path.is_relative());
 
@@ -116,6 +87,11 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
                         }
                         html_export.push_str(r#"</p></hgroup>"#);
                     }
+                }
+            }
+            Event::Leave(Container::Document(_doc)) => {
+                if requirements.has_code {
+                    html_export.push_str("<script src=\"https://cdn.jsdelivr.net/npm/@arborium/arborium@1/dist/arborium.iife.js\"></script>");
                 }
             }
 
@@ -187,6 +163,8 @@ pub fn to_html(doc: Org, tags: &[String], file_rel_path: &Path) -> Result<String
             }
 
             Event::Enter(Container::SourceBlock(block)) => {
+                requirements.has_code = true;
+
                 // FIXME: Avoid weird prefix spacing? Check https://docs.rs/indoc
                 if let Some(language) = block.language() {
                     html_export.push_str(format!(
@@ -340,6 +318,36 @@ mod tests {
             ok(eq(indoc! {r###"
               <h1>TITLE</h1><section></section><section id="heading" class="s1"><h1><a href="#heading">Heading</a></h1><section><p>Hi
               </p></section></section>"###})),
+        );
+    }
+
+    #[gtest]
+    fn some_code() {
+        let contents = indoc! {r###"
+          #+title: TITLE
+          * Heading
+          Hi
+
+          #+begin_src rust
+          pub fn main() {
+            println!("Hi");
+          }
+          #+end_src
+        "###};
+        let doc = Org::parse(contents);
+        let tags = org_tags(&doc, contents);
+
+        let rel_path = Path::new("simple_doc.org");
+        let html = to_html(doc, &tags, rel_path);
+
+        expect_that!(
+            html,
+            ok(eq(indoc! {r###"
+              <h1>TITLE</h1><section></section><section id="heading" class="s1"><h1><a href="#heading">Heading</a></h1><section><p>Hi
+              </p><pre><code class="language-rust">pub fn main() {
+                println!(&quot;Hi&quot;);
+              }
+              </code></pre></section></section><script src="https://cdn.jsdelivr.net/npm/@arborium/arborium@1/dist/arborium.iife.js"></script>"###})),
         );
     }
 }
