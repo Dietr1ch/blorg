@@ -121,8 +121,7 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
 /// Writes an HTML file. May minify the file.
 fn write_html(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     if args.minify_html {
-        use minify_html::{Cfg, minify};
-        let mut cfg = Cfg::new();
+        let mut cfg = minify_html::Cfg::new();
         cfg.minify_css = true;
         cfg.minify_js = true;
         cfg.ensure_spec_compliant_unquoted_attribute_values = true;
@@ -130,7 +129,7 @@ fn write_html(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
         cfg.keep_closing_tags = true;
 
         log::info!("Minifying {}", path.display());
-        fs::write(path, minify(contents.as_bytes(), &cfg))
+        fs::write(path, minify_html::minify(contents.as_bytes(), &cfg))
     } else {
         fs::write(path, contents.as_bytes())
     }
