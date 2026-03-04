@@ -281,8 +281,8 @@ fn main() -> io::Result<()> {
                 );
                 write_stub_file(&args, &out_path.join("index.html"))?;
 
-                sitemap.push(&doc, &rel_path);
-                let html = page::to_html(doc, &tags, &rel_path)?;
+                sitemap.push(&doc, rel_path);
+                let html = page::to_html(doc, &tags, rel_path)?;
 
                 // Write HTML fragment
                 log::debug!(
