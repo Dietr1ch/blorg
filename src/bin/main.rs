@@ -91,6 +91,7 @@ fn try_mkdir(path: &Path) -> io::Result<()> {
 ///
 /// Implementation:
 /// - We went for sentinel files using JS redirects into `/?p=REAL_PATH`.
+/// - We also sneak preload directives to the main CSS and JS files
 fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
     let contents = indoc::formatdoc! {r###"
         <!DOCTYPE html>
@@ -98,6 +99,8 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
           <head>
             <title>{title}</title>
             <link rel="preload" href="_.html" as="fetch" type="text/html" crossorigin />
+            <link rel="preload" href="/s/_.css" as="style" type="text/css" crossorigin />
+            <link rel="preload" href="/l/_.js" as="script" type="text/javascript" crossorigin />
             <script type="text/javascript">
         const l = window.location;
         var url = new URL(window.location);
