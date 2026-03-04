@@ -2,6 +2,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
+use std::time::SystemTime;
 
 use clap::Parser;
 use orgize::Org;
@@ -43,8 +44,6 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub minifier_copy_on_failure: bool,
 }
-
-use std::time::SystemTime;
 
 fn setup_logger(args: &Args) -> Result<(), fern::InitError> {
     fern::Dispatch::new()
