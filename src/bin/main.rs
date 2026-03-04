@@ -157,6 +157,12 @@ fn write_css(args: &Args, path: &Path, contents: &str) -> io::Result<()> {
     }
 }
 
+/// Writes a JS file. Will minify the file in the future.
+fn write_js(_args: &Args, path: &Path, contents: &str) -> io::Result<()> {
+    log::info!("Copying {}. TODO: Minify it", path.display());
+    fs::write(path, contents.as_bytes())
+}
+
 #[inline(always)]
 fn file_should_be_skipped(file_name: &str) -> bool {
     /// Files to avoid processing
@@ -293,6 +299,7 @@ fn main() -> io::Result<()> {
             }
             Some("html") => write_html(&args, &out_path, &fs::read_to_string(path)?)?,
             Some("css") => write_css(&args, &out_path, &fs::read_to_string(path)?)?,
+            Some("js") => write_js(&args, &out_path, &fs::read_to_string(path)?)?,
             Some(_ext) => {
                 if !args.copy_older_files && fs::exists(&out_path)? {
                     // Get metadata
