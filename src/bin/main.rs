@@ -98,6 +98,7 @@ fn write_stub_file(args: &Args, path: &Path) -> io::Result<()> {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
           <head>
             <title>{title}</title>
+            <link rel="preload" href="_.html" as="fetch" type="text/html" crossorigin />
             <script type="text/javascript">
         const l = window.location;
         var url = new URL(window.location);
